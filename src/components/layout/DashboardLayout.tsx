@@ -1,0 +1,120 @@
+import { ReactNode } from "react";
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Users, 
+  Package, 
+  Bell, 
+  FileText, 
+  Settings,
+  PawPrint,
+  LogOut,
+  Heart,
+  Stethoscope,
+  ClipboardList
+} from "lucide-react";
+import { NavLink } from "@/components/NavLink";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+
+interface DashboardLayoutProps {
+  children: ReactNode;
+  userRole: "cliente" | "veterinario" | "admin";
+}
+
+const DashboardLayout = ({ children, userRole }: DashboardLayoutProps) => {
+  const getNavigationItems = () => {
+    switch (userRole) {
+      case "cliente":
+        return [
+          { icon: LayoutDashboard, label: "Dashboard", path: "/cliente/dashboard" },
+          { icon: Heart, label: "Mis Mascotas", path: "/cliente/mascotas" },
+          { icon: Calendar, label: "Citas", path: "/cliente/citas" },
+          { icon: ClipboardList, label: "Historial", path: "/cliente/historial" },
+          { icon: Bell, label: "Notificaciones", path: "/cliente/notificaciones" },
+        ];
+      case "veterinario":
+        return [
+          { icon: LayoutDashboard, label: "Dashboard", path: "/veterinario/dashboard" },
+          { icon: Calendar, label: "Agenda", path: "/veterinario/agenda" },
+          { icon: Stethoscope, label: "Consultas", path: "/veterinario/consultas" },
+          { icon: Users, label: "Pacientes", path: "/veterinario/pacientes" },
+          { icon: FileText, label: "Reportes", path: "/veterinario/reportes" },
+        ];
+      case "admin":
+        return [
+          { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
+          { icon: Users, label: "Usuarios", path: "/admin/usuarios" },
+          { icon: Calendar, label: "Citas", path: "/admin/citas" },
+          { icon: Package, label: "Inventario", path: "/admin/inventario" },
+          { icon: Bell, label: "Notificaciones", path: "/admin/notificaciones" },
+          { icon: FileText, label: "Reportes", path: "/admin/reportes" },
+          { icon: Settings, label: "Configuración", path: "/admin/configuracion" },
+        ];
+    }
+  };
+
+  const navigationItems = getNavigationItems();
+
+  const getRoleLabel = () => {
+    switch (userRole) {
+      case "cliente":
+        return "Cliente";
+      case "veterinario":
+        return "Veterinario";
+      case "admin":
+        return "Administrador";
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex w-full bg-muted/30">
+      {/* Sidebar */}
+      <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
+        <div className="p-6 border-b border-sidebar-border">
+          <div className="flex items-center gap-2">
+            <PawPrint className="h-8 w-8 text-sidebar-foreground" />
+            <div>
+              <span className="text-xl font-bold text-sidebar-foreground block">VetCare 360</span>
+              <span className="text-xs text-sidebar-foreground/70">{getRoleLabel()}</span>
+            </div>
+          </div>
+        </div>
+
+        <nav className="flex-1 p-4 space-y-1">
+          {navigationItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+              activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="p-4 border-t border-sidebar-border">
+          <Separator className="mb-4 bg-sidebar-border" />
+          <NavLink
+            to="/auth"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+          >
+            <LogOut className="h-5 w-5" />
+            <span>Cerrar Sesión</span>
+          </NavLink>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto">
+        <div className="container mx-auto p-6 md:p-8">
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default DashboardLayout;
