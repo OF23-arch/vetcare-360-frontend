@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { AddAppointmentDialog } from "@/components/appointments/AddAppointmentDialog";
+import { RescheduleAppointmentDialog } from "@/components/appointments/RescheduleAppointmentDialog";
+import { AppointmentDetailsDialog } from "@/components/appointments/AppointmentDetailsDialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -124,14 +126,16 @@ const Citas = () => {
                   </div>
                   {cita.status !== "completada" && cita.status !== "cancelada" && (
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Reprogramar
-                      </Button>
+                      <RescheduleAppointmentDialog 
+                        appointmentId={cita.id} 
+                        currentDate={cita.scheduled_for || undefined}
+                      />
+                      <AppointmentDetailsDialog appointment={cita} />
                       <Button 
-                        variant="outline" 
+                        variant="ghost" 
                         size="sm" 
-                        className="flex-1"
                         onClick={() => handleCancel(cita.id)}
+                        className="text-destructive hover:text-destructive"
                       >
                         Cancelar
                       </Button>

@@ -2,8 +2,16 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, TrendingUp, Users, Calendar, Download, FileText } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const Reportes = () => {
+  const handleExport = (format: string) => {
+    toast({
+      title: "Exportando reporte",
+      description: `Generando archivo ${format.toUpperCase()}...`,
+    });
+  };
+
   const estadisticas = [
     {
       id: 1,
@@ -101,7 +109,7 @@ const Reportes = () => {
                 <CardTitle>Gráfica de Consultas</CardTitle>
                 <CardDescription>Distribución mensual de consultas</CardDescription>
               </div>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => handleExport("pdf")}>
                 <Download className="h-4 w-4 mr-2" />
                 Exportar
               </Button>
@@ -129,7 +137,10 @@ const Reportes = () => {
                       <CardTitle className="text-base">{reporte.nombre}</CardTitle>
                       <CardDescription>{reporte.descripcion}</CardDescription>
                     </div>
-                    <Button size="sm">
+                    <Button 
+                      size="sm"
+                      onClick={() => handleExport("pdf")}
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Descargar
                     </Button>

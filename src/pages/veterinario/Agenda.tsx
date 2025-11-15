@@ -2,8 +2,10 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Plus, User } from "lucide-react";
+import { Calendar, Clock, User } from "lucide-react";
 import { useAppointments } from "@/hooks/useAppointments";
+import { AppointmentDetailsDialog } from "@/components/appointments/AppointmentDetailsDialog";
+import { CreateAppointmentDialog } from "@/components/vet/CreateAppointmentDialog";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -54,10 +56,7 @@ const Agenda = () => {
               {format(new Date(), "EEEE, d 'de' MMMM yyyy", { locale: es })}
             </p>
           </div>
-          <Button className="bg-gradient-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Cita
-          </Button>
+          <CreateAppointmentDialog />
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -139,13 +138,10 @@ const Agenda = () => {
                     <p className="text-sm">{cita.reason}</p>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      Ver Detalles
-                    </Button>
+                    <AppointmentDetailsDialog appointment={cita} />
                     {cita.status === "pendiente" && (
                       <Button 
                         size="sm" 
-                        className="flex-1"
                         onClick={() => handleConfirm(cita.id)}
                       >
                         Confirmar
