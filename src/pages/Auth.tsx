@@ -8,9 +8,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PawPrint, Mail, Lock, User, Phone, Stethoscope, Heart, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { loginSchema, registerSchema } from "@/lib/validations/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   
   // Estado para registro
@@ -32,8 +35,23 @@ const Auth = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
+    // Validate input
+    const result = loginSchema.safeParse(loginData);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0];
+      if (firstError) {
+        toast({
+          title: "Error de validación",
+          description: firstError,
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+    
+    setIsLoading(true);
     await signIn(loginData.email, loginData.password);
     setIsLoading(false);
   };
@@ -41,12 +59,18 @@ const Auth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones
-    if (registerData.password !== registerData.confirmPassword) {
-      return;
-    }
-
-    if (registerData.role === 'admin' && !registerData.adminCode) {
+    // Validate input using zod schema
+    const result = registerSchema.safeParse(registerData);
+    if (!result.success) {
+      const errors = result.error.flatten().fieldErrors;
+      const firstError = Object.values(errors)[0]?.[0];
+      if (firstError) {
+        toast({
+          title: "Error de validación",
+          description: firstError,
+          variant: "destructive",
+        });
+      }
       return;
     }
 
