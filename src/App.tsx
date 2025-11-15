@@ -19,6 +19,7 @@ import Pacientes from "./pages/veterinario/Pacientes";
 import Reportes from "./pages/veterinario/Reportes";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import GestionUsuarios from "./pages/admin/GestionUsuarios";
+import Inventario from "./pages/admin/Inventario";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const App = () => (
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={['admin']}><GestionUsuarios /></ProtectedRoute>} />
+          <Route path="/admin/inventario" element={<ProtectedRoute allowedRoles={['admin']}><Inventario /></ProtectedRoute>} />
           
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
