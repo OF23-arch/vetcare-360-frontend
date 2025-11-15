@@ -99,10 +99,47 @@ export const usePets = () => {
     },
   });
 
+  const deletePet = useMutation({
+    mutationFn: async (id: string) => {
+      // Verificar que no tenga citas activas
+      const { data: appointments } = await supabase
+        .from("appointments")
+        .select("id")
+        .eq("pet_id", id)
+        .in("status", ["pendiente", "confirmada"]);
+
+      if (appointments && appointments.length > 0) {
+        throw new Error("No se puede eliminar una mascota con citas activas");
+      }
+
+      const { error } = await supabase
+        .from("pets")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pets"] });
+      toast({
+        title: "Mascota eliminada",
+        description: "La mascota se ha eliminado exitosamente",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo eliminar la mascota",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     pets,
     isLoading,
     createPet,
     updatePet,
+    deletePet,
   };
 };

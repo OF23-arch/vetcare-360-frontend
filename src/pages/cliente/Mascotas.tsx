@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Activity } from "lucide-react";
 import { usePets } from "@/hooks/usePets";
 import { AddPetDialog } from "@/components/pets/AddPetDialog";
+import { DeletePetDialog } from "@/components/pets/DeletePetDialog";
 import { useNavigate } from "react-router-dom";
 
 const Mascotas = () => {
@@ -106,6 +107,7 @@ const Mascotas = () => {
                       <Calendar className="h-4 w-4 mr-2" />
                       Agendar Cita
                     </Button>
+                    <DeletePetDialog petId={mascota.id} petName={mascota.name} />
                   </div>
                 </CardContent>
               </Card>

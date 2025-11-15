@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Stethoscope, Search, FileText, Plus } from "lucide-react";
+import { Stethoscope, Search, FileText } from "lucide-react";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { AddClinicalEntryDialog } from "@/components/vet/AddClinicalEntryDialog";
 
 const Consultas = () => {
   const { appointments, isLoading, updateAppointment } = useAppointments();
@@ -53,10 +54,6 @@ const Consultas = () => {
             <h1 className="text-3xl font-bold text-foreground">Consultas</h1>
             <p className="text-muted-foreground">Gestiona las consultas de tus pacientes</p>
           </div>
-          <Button className="bg-gradient-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Consulta
-          </Button>
         </div>
 
         <div className="flex items-center gap-4">
@@ -126,26 +123,15 @@ const Consultas = () => {
                       <p className="text-sm font-medium">{consulta.reason}</p>
                     </div>
                     <div className="flex gap-2 pt-2 border-t">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Ver Expediente
+                      </Button>
                       {consulta.status === "confirmada" && (
-                        <>
-                          <Button variant="outline" size="sm" className="flex-1">
-                            <FileText className="h-4 w-4 mr-2" />
-                            Ver Expediente
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => handleComplete(consulta.id)}
-                          >
-                            Completar Consulta
-                          </Button>
-                        </>
-                      )}
-                      {consulta.status === "completada" && (
-                        <Button variant="outline" size="sm" className="w-full">
-                          <FileText className="h-4 w-4 mr-2" />
-                          Ver Detalles
-                        </Button>
+                        <AddClinicalEntryDialog 
+                          appointmentId={consulta.id} 
+                          petId={consulta.pet_id}
+                        />
                       )}
                     </div>
                   </div>
