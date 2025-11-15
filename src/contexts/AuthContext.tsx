@@ -44,12 +44,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('*')
+              .select('*, user_roles!inner(role)')
               .eq('id', session.user.id)
               .single();
             
-            if (profileData) {
-              setProfile(profileData);
+            if (profileData && profileData.user_roles?.[0]) {
+              const profile = {
+                ...profileData,
+                role: profileData.user_roles[0].role
+              };
+              setProfile(profile);
             }
           }, 0);
         } else {
@@ -66,12 +70,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         supabase
           .from('profiles')
-          .select('*')
+          .select('*, user_roles!inner(role)')
           .eq('id', session.user.id)
           .single()
           .then(({ data: profileData }) => {
-            if (profileData) {
-              setProfile(profileData);
+            if (profileData && profileData.user_roles?.[0]) {
+              const profile = {
+                ...profileData,
+                role: profileData.user_roles[0].role
+              };
+              setProfile(profile);
             }
             setLoading(false);
           });
@@ -92,11 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     adminCode?: string
   ) => {
     try {
-      // Validar código de admin si es admin
-      if (role === 'admin' && adminCode !== '1209') {
-        return { error: { message: 'Código de SuperAdmin inválido' } };
-      }
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -105,11 +108,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             full_name: fullName,
             phone,
             role
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
       if (error) throw error;
+
+      if (data.user && role === 'admin') {
+        // Validate admin code via edge function
+        const { data: validationData, error: validationError } = await supabase.functions.invoke(
+          'validate-admin-code',
+          {
+            body: { 
+              adminCode, 
+              userId: data.user.id,
+              role: 'admin'
+            }
+          }
+        );
+
+        if (validationError || !validationData?.valid) {
+          // Delete the user if admin code is invalid
+          await supabase.auth.admin.deleteUser(data.user.id);
+          toast({
+            title: "Código inválido",
+            description: "El código de administrador es incorrecto",
+            variant: "destructive",
+          });
+          return { error: { message: 'Código de SuperAdmin inválido' } };
+        }
+      }
 
       if (data.user) {
         toast({
@@ -144,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select('*, user_roles!inner(role)')
           .eq('id', data.user.id)
           .single();
 
@@ -157,17 +186,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return { error: profileError };
         }
 
-        if (profileData) {
-          setProfile(profileData);
+        if (profileData && profileData.user_roles?.[0]) {
+          const profile = {
+            ...profileData,
+            role: profileData.user_roles[0].role
+          };
+          setProfile(profile);
           
           toast({
             title: "Bienvenido",
-            description: `Has iniciado sesión como ${profileData.role}`,
+            description: `Has iniciado sesión como ${profile.role}`,
           });
 
           // Redirigir según rol
           setTimeout(() => {
-            navigate(`/${profileData.role}/dashboard`);
+            navigate(`/${profile.role}/dashboard`);
           }, 100);
         }
       }
