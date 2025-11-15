@@ -112,28 +112,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       if (data.user) {
-        // Crear perfil
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            full_name: fullName,
-            phone,
-            role
-          });
-
-        if (profileError) throw profileError;
-
-        // Crear rol en user_roles
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: data.user.id,
-            role
-          });
-
-        if (roleError) throw roleError;
-
         toast({
           title: "Cuenta creada exitosamente",
           description: "Ya puedes iniciar sesión con tu cuenta",
