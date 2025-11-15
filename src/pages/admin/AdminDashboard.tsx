@@ -12,11 +12,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProfiles } from "@/hooks/useProfiles";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
 const AdminDashboard = () => {
   const { profiles, stats, isLoading } = useProfiles();
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -119,19 +121,35 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/usuarios")}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Gestionar Usuarios
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/citas")}
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   Ver Todas las Citas
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/mascotas")}
+                >
                   <PawPrint className="h-4 w-4 mr-2" />
                   Ver Todas las Mascotas
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/reportes")}
+                >
                   <Activity className="h-4 w-4 mr-2" />
                   Reportes y Estadísticas
                 </Button>

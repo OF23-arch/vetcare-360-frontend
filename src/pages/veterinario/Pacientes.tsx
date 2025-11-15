@@ -3,14 +3,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Search, Phone, Mail, Calendar, FileText } from "lucide-react";
+import { Search, FileText, Calendar, Mail } from "lucide-react";
 import { usePets } from "@/hooks/usePets";
+import { PetFiltersDialog } from "@/components/pets/PetFiltersDialog";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { differenceInYears, differenceInMonths } from "date-fns";
 
 const Pacientes = () => {
   const { pets, isLoading } = usePets();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState({ species: "todos", sex: "todos" });
 
   const calculateAge = (birthDate: string | null) => {
     if (!birthDate) return "Edad desconocida";
@@ -23,10 +27,13 @@ const Pacientes = () => {
     return `${months} ${months === 1 ? 'mes' : 'meses'}`;
   };
 
-  const filteredPets = pets?.filter((pet) =>
-    pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pet.species.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPets = pets?.filter((pet) => {
+    const matchesSearch = pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pet.species.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSpecies = filters.species === "todos" || pet.species === filters.species;
+    const matchesSex = filters.sex === "todos" || pet.sex === filters.sex;
+    return matchesSearch && matchesSpecies && matchesSex;
+  });
 
   if (isLoading) {
     return (
@@ -56,7 +63,7 @@ const Pacientes = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button variant="outline">Filtros</Button>
+          <PetFiltersDialog onApplyFilters={setFilters} />
         </div>
 
         {!filteredPets || filteredPets.length === 0 ? (
@@ -101,13 +108,14 @@ const Pacientes = () => {
                     </div>
 
                     <div className="flex gap-2 pt-2 border-t">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => navigate("/vet/pacientes")}
+                      >
                         <FileText className="h-4 w-4 mr-2" />
                         Ver Historial
-                      </Button>
-                      <Button size="sm" className="flex-1">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Agendar Cita
                       </Button>
                     </div>
                   </div>
