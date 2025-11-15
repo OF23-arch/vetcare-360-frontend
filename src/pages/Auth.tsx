@@ -4,13 +4,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PawPrint, Mail, Lock, User, Phone } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { PawPrint, Mail, Lock, User, Phone, Stethoscope, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [userRole, setUserRole] = useState<"cliente" | "veterinario">("cliente");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,9 +20,10 @@ const Auth = () => {
     
     // Simulación de autenticación
     setTimeout(() => {
+      // Por defecto asumimos cliente para login, podría venir del backend
+      const storedRole = localStorage.getItem("userRole") || "cliente";
       toast.success("Inicio de sesión exitoso");
-      // Redirigir según el tipo de usuario (por ahora cliente)
-      navigate("/cliente/dashboard");
+      navigate(`/${storedRole}/dashboard`);
       setIsLoading(false);
     }, 1000);
   };
@@ -30,8 +33,10 @@ const Auth = () => {
     setIsLoading(true);
     
     setTimeout(() => {
+      // Guardar el rol seleccionado
+      localStorage.setItem("userRole", userRole);
       toast.success("Cuenta creada exitosamente");
-      navigate("/cliente/dashboard");
+      navigate(`/${userRole}/dashboard`);
       setIsLoading(false);
     }, 1000);
   };
@@ -169,6 +174,32 @@ const Auth = () => {
                         required
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label>Tipo de Usuario</Label>
+                    <RadioGroup value={userRole} onValueChange={(value) => setUserRole(value as "cliente" | "veterinario")}>
+                      <div className="flex items-center space-x-2 border border-border rounded-lg p-3 hover:bg-muted/50 cursor-pointer">
+                        <RadioGroupItem value="cliente" id="cliente" />
+                        <Label htmlFor="cliente" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Heart className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="font-medium">Cliente</div>
+                            <div className="text-xs text-muted-foreground">Dueño de mascota</div>
+                          </div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border border-border rounded-lg p-3 hover:bg-muted/50 cursor-pointer">
+                        <RadioGroupItem value="veterinario" id="veterinario" />
+                        <Label htmlFor="veterinario" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Stethoscope className="h-4 w-4 text-primary" />
+                          <div>
+                            <div className="font-medium">Veterinario</div>
+                            <div className="text-xs text-muted-foreground">Profesional veterinario</div>
+                          </div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
 
                   <div className="flex items-start gap-2 text-sm">
