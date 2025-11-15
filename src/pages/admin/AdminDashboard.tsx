@@ -7,7 +7,8 @@ import {
   TrendingUp, 
   Activity,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Package
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -138,6 +139,14 @@ const AdminDashboard = () => {
                   Ver Todas las Citas
                 </Button>
                 <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => navigate("/admin/inventario")}
+                >
+                  <Package className="h-4 w-4 mr-2" />
+                  Gestionar Inventario
+                </Button>
+                <Button
                   variant="outline" 
                   className="w-full justify-start"
                   onClick={() => navigate("/admin/mascotas")}
