@@ -18,6 +18,7 @@ import Consultas from "./pages/veterinario/Consultas";
 import Pacientes from "./pages/veterinario/Pacientes";
 import Reportes from "./pages/veterinario/Reportes";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import GestionUsuarios from "./pages/admin/GestionUsuarios";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,7 @@ const App = () => (
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/usuarios" element={<ProtectedRoute allowedRoles={['admin']}><GestionUsuarios /></ProtectedRoute>} />
           
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

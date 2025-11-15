@@ -1,110 +1,79 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Bell, Calendar, AlertCircle, CheckCircle, Info } from "lucide-react";
+import { Bell, Calendar, CheckCircle, AlertCircle } from "lucide-react";
+import { useAppointments } from "@/hooks/useAppointments";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const Notificaciones = () => {
-  const notificaciones = [
-    {
-      id: 1,
-      tipo: "cita",
-      titulo: "Recordatorio de Cita",
-      mensaje: "Tienes una cita con Max mañana a las 10:00 AM",
-      fecha: "Hoy",
-      leido: false,
-      icon: Calendar,
-      color: "text-blue-500"
-    },
-    {
-      id: 2,
-      tipo: "vacuna",
-      titulo: "Vacuna Pendiente",
-      mensaje: "Luna necesita su vacuna antirrábica el 20 de noviembre",
-      fecha: "Hace 2 días",
-      leido: false,
-      icon: AlertCircle,
-      color: "text-orange-500"
-    },
-    {
-      id: 3,
-      tipo: "confirmacion",
-      titulo: "Cita Confirmada",
-      mensaje: "Tu cita para Max ha sido confirmada exitosamente",
-      fecha: "Hace 3 días",
-      leido: true,
-      icon: CheckCircle,
-      color: "text-green-500"
-    },
-    {
-      id: 4,
-      tipo: "info",
-      titulo: "Consejos de Salud",
-      mensaje: "Recuerda mantener la hidratación de tus mascotas durante el verano",
-      fecha: "Hace 5 días",
-      leido: true,
-      icon: Info,
-      color: "text-purple-500"
+  const { appointments } = useAppointments();
+
+  // Crear notificaciones basadas en citas
+  const notifications = appointments
+    ?.filter(apt => apt.status === "confirmada" || apt.status === "pendiente")
+    .map(apt => ({
+      id: apt.id,
+      type: apt.status === "confirmada" ? "success" : "warning",
+      title: apt.status === "confirmada" ? "Cita Confirmada" : "Cita Pendiente",
+      message: `${apt.pet?.name} - ${apt.type === "presencial" ? "Consulta Presencial" : "Teleconsulta"}`,
+      date: apt.scheduled_for || apt.requested_at,
+      read: false,
+    })) || [];
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "success":
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
+      case "warning":
+        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+      default:
+        return <Bell className="h-5 w-5 text-blue-500" />;
     }
-  ];
+  };
 
   return (
     <DashboardLayout userRole="client">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Notificaciones</h1>
-            <p className="text-muted-foreground">Mantente al día con tus recordatorios</p>
-          </div>
-          <Button variant="outline">
-            Marcar todas como leídas
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Notificaciones</h1>
+          <p className="text-muted-foreground">Mantente al día con tus citas y actualizaciones</p>
         </div>
 
-        <div className="grid gap-3">
-          {notificaciones.map((notif) => {
-            const Icon = notif.icon;
-            return (
-              <Card 
-                key={notif.id} 
-                className={`${!notif.leido ? 'border-primary/50 bg-primary/5' : ''} hover:shadow-md transition-shadow`}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start gap-4">
-                    <div className={`p-2 rounded-lg bg-muted ${notif.color}`}>
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base">{notif.titulo}</CardTitle>
-                        <div className="flex items-center gap-2">
-                          {!notif.leido && (
-                            <Badge variant="default" className="h-2 w-2 p-0 rounded-full" />
-                          )}
-                          <span className="text-xs text-muted-foreground">{notif.fecha}</span>
+        {notifications.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Bell className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No tienes notificaciones nuevas</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {notifications.map((notification) => (
+              <Card key={notification.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1">{getIcon(notification.type)}</div>
+                      <div>
+                        <CardTitle className="text-base">{notification.title}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {notification.message}
+                        </CardDescription>
+                        <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          {format(new Date(notification.date), "dd MMM yyyy, HH:mm", { locale: es })}
                         </div>
                       </div>
-                      <CardDescription className="mt-1">
-                        {notif.mensaje}
-                      </CardDescription>
                     </div>
+                    {!notification.read && (
+                      <Badge variant="secondary">Nueva</Badge>
+                    )}
                   </div>
                 </CardHeader>
               </Card>
-            );
-          })}
-        </div>
-
-        {notificaciones.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <CardTitle className="mb-2">No hay notificaciones</CardTitle>
-              <CardDescription>
-                Cuando tengas nuevas notificaciones, aparecerán aquí
-              </CardDescription>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         )}
       </div>
     </DashboardLayout>
