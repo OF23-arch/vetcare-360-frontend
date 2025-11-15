@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
@@ -34,21 +33,21 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           
           {/* Cliente Routes */}
-          <Route path="/client/dashboard" element={<ProtectedRoute allowedRoles={['client']}><ClienteDashboard /></ProtectedRoute>} />
-          <Route path="/client/mascotas" element={<ProtectedRoute allowedRoles={['client']}><Mascotas /></ProtectedRoute>} />
-          <Route path="/client/citas" element={<ProtectedRoute allowedRoles={['client']}><ClienteCitas /></ProtectedRoute>} />
-          <Route path="/client/historial" element={<ProtectedRoute allowedRoles={['client']}><Historial /></ProtectedRoute>} />
-          <Route path="/client/notificaciones" element={<ProtectedRoute allowedRoles={['client']}><ClienteNotificaciones /></ProtectedRoute>} />
+          <Route path="/client/dashboard" element={<ClienteDashboard />} />
+          <Route path="/client/mascotas" element={<Mascotas />} />
+          <Route path="/client/citas" element={<ClienteCitas />} />
+          <Route path="/client/historial" element={<Historial />} />
+          <Route path="/client/notificaciones" element={<ClienteNotificaciones />} />
           
           {/* Veterinario Routes */}
-          <Route path="/vet/dashboard" element={<ProtectedRoute allowedRoles={['vet']}><VeterinarioDashboard /></ProtectedRoute>} />
-          <Route path="/vet/agenda" element={<ProtectedRoute allowedRoles={['vet']}><Agenda /></ProtectedRoute>} />
-          <Route path="/vet/consultas" element={<ProtectedRoute allowedRoles={['vet']}><Consultas /></ProtectedRoute>} />
-          <Route path="/vet/pacientes" element={<ProtectedRoute allowedRoles={['vet']}><Pacientes /></ProtectedRoute>} />
-          <Route path="/vet/reportes" element={<ProtectedRoute allowedRoles={['vet']}><Reportes /></ProtectedRoute>} />
+          <Route path="/vet/dashboard" element={<VeterinarioDashboard />} />
+          <Route path="/vet/agenda" element={<Agenda />} />
+          <Route path="/vet/consultas" element={<Consultas />} />
+          <Route path="/vet/pacientes" element={<Pacientes />} />
+          <Route path="/vet/reportes" element={<Reportes />} />
           
           {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
