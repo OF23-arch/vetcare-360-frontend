@@ -166,29 +166,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
 
       if (data.user) {
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', data.user.id)
           .single();
 
+        if (profileError) {
+          toast({
+            title: "Error al cargar perfil",
+            description: "No se pudo cargar tu información de perfil.",
+            variant: "destructive",
+          });
+          return { error: profileError };
+        }
+
         if (profileData) {
           setProfile(profileData);
           
-          // Redirigir según rol
-          setTimeout(() => {
-            navigate(`/${profileData.role}/dashboard`);
-          }, 100);
-
           toast({
             title: "Bienvenido",
             description: `Has iniciado sesión como ${profileData.role}`,
           });
+
+          // Redirigir según rol
+          setTimeout(() => {
+            navigate(`/${profileData.role}/dashboard`);
+          }, 100);
         }
       }
 
       return { error: null };
     } catch (error: any) {
+      console.error('Error en signIn:', error);
+      
+      // Mostrar mensaje de error específico
+      let errorMessage = "Error al iniciar sesión";
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = "Correo o contraseña incorrectos";
+      } else if (error.message?.includes('Email not confirmed')) {
+        errorMessage = "Por favor confirma tu correo electrónico";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+
       return { error };
     }
   };
