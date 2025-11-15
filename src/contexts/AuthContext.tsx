@@ -18,6 +18,7 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone: string, role: 'admin' | 'vet', adminCode?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -96,13 +97,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return { error: { message: 'Código de SuperAdmin inválido' } };
       }
 
-      const redirectUrl = `${window.location.origin}/auth`;
-
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl,
           data: {
             full_name: fullName,
             phone,
@@ -138,7 +136,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         toast({
           title: "Cuenta creada exitosamente",
-          description: "Por favor revisa tu correo para confirmar tu email",
+          description: "Ya puedes iniciar sesión con tu cuenta",
         });
       }
 
@@ -220,6 +218,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth`,
+        },
+      });
+
+      if (error) throw error;
+
+      return { error: null };
+    } catch (error: any) {
+      console.error('Error en signInWithGoogle:', error);
+      
+      toast({
+        title: "Error",
+        description: error.message || "Error al iniciar sesión con Google",
+        variant: "destructive",
+      });
+
+      return { error };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -229,7 +252,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
