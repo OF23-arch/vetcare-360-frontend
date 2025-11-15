@@ -2,54 +2,45 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, Clock, MapPin } from "lucide-react";
+import { Calendar, Clock, MapPin } from "lucide-react";
+import { useAppointments } from "@/hooks/useAppointments";
+import { AddAppointmentDialog } from "@/components/appointments/AddAppointmentDialog";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const Citas = () => {
-  const citas = [
-    {
-      id: 1,
-      mascota: "Max",
-      tipo: "Consulta General",
-      fecha: "15 Nov 2025",
-      hora: "10:00 AM",
-      veterinario: "Dr. García",
-      estado: "Confirmada",
-      ubicacion: "Consultorio 1"
-    },
-    {
-      id: 2,
-      mascota: "Luna",
-      tipo: "Vacunación",
-      fecha: "20 Nov 2025",
-      hora: "3:00 PM",
-      veterinario: "Dra. Martínez",
-      estado: "Pendiente",
-      ubicacion: "Consultorio 2"
-    },
-    {
-      id: 3,
-      mascota: "Max",
-      tipo: "Control",
-      fecha: "10 Nov 2025",
-      hora: "11:30 AM",
-      veterinario: "Dr. García",
-      estado: "Completada",
-      ubicacion: "Consultorio 1"
-    }
-  ];
+  const { appointments, isLoading, updateAppointment } = useAppointments();
 
   const getEstadoColor = (estado: string) => {
     switch (estado) {
-      case "Confirmada":
+      case "confirmada":
         return "default";
-      case "Pendiente":
+      case "pendiente":
         return "secondary";
-      case "Completada":
+      case "completada":
         return "outline";
       default:
         return "secondary";
     }
   };
+
+  const handleConfirm = async (id: string) => {
+    await updateAppointment.mutateAsync({ id, status: "confirmada" });
+  };
+
+  const handleCancel = async (id: string) => {
+    await updateAppointment.mutateAsync({ id, status: "cancelada" });
+  };
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userRole="client">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p>Cargando citas...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userRole="client">
@@ -59,68 +50,98 @@ const Citas = () => {
             <h1 className="text-3xl font-bold text-foreground">Mis Citas</h1>
             <p className="text-muted-foreground">Gestiona tus citas veterinarias</p>
           </div>
-          <Button className="bg-gradient-primary">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Cita
-          </Button>
+          <AddAppointmentDialog />
         </div>
 
-        <div className="grid gap-4">
-          {citas.map((cita) => (
-            <Card key={cita.id}>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {cita.mascota}
-                      <Badge variant={getEstadoColor(cita.estado)}>{cita.estado}</Badge>
-                    </CardTitle>
-                    <CardDescription>{cita.tipo}</CardDescription>
-                  </div>
-                  {cita.estado === "Pendiente" && (
-                    <Button size="sm">Confirmar</Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-primary" />
+        {!appointments || appointments.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground mb-4">No tienes citas agendadas</p>
+              <AddAppointmentDialog />
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {appointments.map((cita) => (
+              <Card key={cita.id}>
+                <CardHeader>
+                  <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-muted-foreground">Fecha</p>
-                      <p className="font-medium">{cita.fecha}</p>
+                      <CardTitle className="flex items-center gap-2">
+                        {cita.pet?.name || "Mascota"}
+                        <Badge variant={getEstadoColor(cita.status)}>
+                          {cita.status.charAt(0).toUpperCase() + cita.status.slice(1)}
+                        </Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        {cita.type === "presencial" ? "Consulta Presencial" : "Teleconsulta"}
+                      </CardDescription>
                     </div>
+                    {cita.status === "pendiente" && (
+                      <Button size="sm" onClick={() => handleConfirm(cita.id)}>
+                        Confirmar
+                      </Button>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-primary" />
-                    <div>
-                      <p className="text-muted-foreground">Hora</p>
-                      <p className="font-medium">{cita.hora}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-4">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <div>
+                        <p className="text-muted-foreground">Fecha</p>
+                        <p className="font-medium">
+                          {cita.scheduled_for
+                            ? format(new Date(cita.scheduled_for), "dd MMM yyyy", { locale: es })
+                            : "Por definir"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <div>
-                      <p className="text-muted-foreground">Ubicación</p>
-                      <p className="font-medium">{cita.ubicacion}</p>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <div>
+                        <p className="text-muted-foreground">Hora</p>
+                        <p className="font-medium">
+                          {cita.scheduled_for
+                            ? format(new Date(cita.scheduled_for), "HH:mm", { locale: es })
+                            : "Por definir"}
+                        </p>
+                      </div>
                     </div>
+                    {cita.vet && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <div>
+                          <p className="text-muted-foreground">Veterinario</p>
+                          <p className="font-medium">{cita.vet.full_name}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Veterinario: <span className="font-medium text-foreground">{cita.veterinario}</span>
-                  </p>
-                  {cita.estado !== "Completada" && (
+                  <div className="mb-4">
+                    <p className="text-sm text-muted-foreground mb-1">Motivo:</p>
+                    <p className="text-sm">{cita.reason}</p>
+                  </div>
+                  {cita.status !== "completada" && cita.status !== "cancelada" && (
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">Reprogramar</Button>
-                      <Button variant="outline" size="sm">Cancelar</Button>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Reprogramar
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => handleCancel(cita.id)}
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
