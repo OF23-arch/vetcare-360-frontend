@@ -364,9 +364,7 @@ const Landing = () => {
                 Crear Cuenta Gratis
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8">
-              Contactar Ventas
-            </Button>
+            
           </div>
         </div>
       </section>
