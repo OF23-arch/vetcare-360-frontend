@@ -41,7 +41,7 @@ const Historial = () => {
   ];
 
   return (
-    <DashboardLayout userRole="cliente">
+    <DashboardLayout userRole="client">
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Historial Médico</h1>

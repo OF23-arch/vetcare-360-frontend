@@ -11,35 +11,40 @@ import {
   LogOut,
   Heart,
   Stethoscope,
-  ClipboardList
+  ClipboardList,
+  ShoppingBag
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
-  userRole: "cliente" | "veterinario" | "admin";
+  userRole: "client" | "vet" | "admin";
 }
 
 const DashboardLayout = ({ children, userRole }: DashboardLayoutProps) => {
+  const { signOut } = useAuth();
+  
   const getNavigationItems = () => {
     switch (userRole) {
-      case "cliente":
+      case "client":
         return [
-          { icon: LayoutDashboard, label: "Dashboard", path: "/cliente/dashboard" },
-          { icon: Heart, label: "Mis Mascotas", path: "/cliente/mascotas" },
-          { icon: Calendar, label: "Citas", path: "/cliente/citas" },
-          { icon: ClipboardList, label: "Historial", path: "/cliente/historial" },
-          { icon: Bell, label: "Notificaciones", path: "/cliente/notificaciones" },
+          { icon: LayoutDashboard, label: "Dashboard", path: "/client/dashboard" },
+          { icon: Heart, label: "Mis Mascotas", path: "/client/mascotas" },
+          { icon: Calendar, label: "Citas", path: "/client/citas" },
+          { icon: ClipboardList, label: "Historial", path: "/client/historial" },
+          { icon: ShoppingBag, label: "Mercadito", path: "/client/mercadito" },
+          { icon: Bell, label: "Notificaciones", path: "/client/notificaciones" },
         ];
-      case "veterinario":
+      case "vet":
         return [
-          { icon: LayoutDashboard, label: "Dashboard", path: "/veterinario/dashboard" },
-          { icon: Calendar, label: "Agenda", path: "/veterinario/agenda" },
-          { icon: Stethoscope, label: "Consultas", path: "/veterinario/consultas" },
-          { icon: Users, label: "Pacientes", path: "/veterinario/pacientes" },
-          { icon: FileText, label: "Reportes", path: "/veterinario/reportes" },
+          { icon: LayoutDashboard, label: "Dashboard", path: "/vet/dashboard" },
+          { icon: Calendar, label: "Agenda", path: "/vet/agenda" },
+          { icon: Stethoscope, label: "Consultas", path: "/vet/consultas" },
+          { icon: Users, label: "Pacientes", path: "/vet/pacientes" },
+          { icon: FileText, label: "Reportes", path: "/vet/reportes" },
         ];
       case "admin":
         return [
@@ -47,9 +52,8 @@ const DashboardLayout = ({ children, userRole }: DashboardLayoutProps) => {
           { icon: Users, label: "Usuarios", path: "/admin/usuarios" },
           { icon: Calendar, label: "Citas", path: "/admin/citas" },
           { icon: Package, label: "Inventario", path: "/admin/inventario" },
+          { icon: FileText, label: "Ventas", path: "/admin/ventas" },
           { icon: Bell, label: "Notificaciones", path: "/admin/notificaciones" },
-          { icon: FileText, label: "Reportes", path: "/admin/reportes" },
-          { icon: Settings, label: "Configuración", path: "/admin/configuracion" },
         ];
     }
   };
@@ -58,13 +62,17 @@ const DashboardLayout = ({ children, userRole }: DashboardLayoutProps) => {
 
   const getRoleLabel = () => {
     switch (userRole) {
-      case "cliente":
+      case "client":
         return "Cliente";
-      case "veterinario":
+      case "vet":
         return "Veterinario";
       case "admin":
         return "Administrador";
     }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
   };
 
   return (
@@ -97,13 +105,14 @@ const DashboardLayout = ({ children, userRole }: DashboardLayoutProps) => {
 
         <div className="p-4 border-t border-sidebar-border">
           <Separator className="mb-4 bg-sidebar-border" />
-          <NavLink
-            to="/auth"
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+          <Button
+            onClick={handleLogout}
+            variant="ghost"
+            className="w-full flex items-center justify-start gap-3 px-4 py-3 text-sidebar-foreground/80 hover:bg-sidebar-accent"
           >
             <LogOut className="h-5 w-5" />
             <span>Cerrar Sesión</span>
-          </NavLink>
+          </Button>
         </div>
       </aside>
 

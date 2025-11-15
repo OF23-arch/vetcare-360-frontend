@@ -5,40 +5,63 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PawPrint, Mail, Lock, User, Phone, Stethoscope, Heart } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { PawPrint, Mail, Lock, User, Phone, Stethoscope, Heart, Shield } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
-  const navigate = useNavigate();
+  const { signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [userRole, setUserRole] = useState<"cliente" | "veterinario">("cliente");
+  
+  // Estado para registro
+  const [registerData, setRegisterData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    role: 'vet' as 'admin' | 'vet',
+    adminCode: '',
+  });
+
+  // Estado para login
+  const [loginData, setLoginData] = useState({
+    email: '',
+    password: '',
+  });
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulación de autenticación
-    setTimeout(() => {
-      // Por defecto asumimos cliente para login, podría venir del backend
-      const storedRole = localStorage.getItem("userRole") || "cliente";
-      toast.success("Inicio de sesión exitoso");
-      navigate(`/${storedRole}/dashboard`);
-      setIsLoading(false);
-    }, 1000);
+    await signIn(loginData.email, loginData.password);
+    setIsLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validaciones
+    if (registerData.password !== registerData.confirmPassword) {
+      return;
+    }
+
+    if (registerData.role === 'admin' && !registerData.adminCode) {
+      return;
+    }
+
     setIsLoading(true);
     
-    setTimeout(() => {
-      // Guardar el rol seleccionado
-      localStorage.setItem("userRole", userRole);
-      toast.success("Cuenta creada exitosamente");
-      navigate(`/${userRole}/dashboard`);
-      setIsLoading(false);
-    }, 1000);
+    await signUp(
+      registerData.email,
+      registerData.password,
+      registerData.fullName,
+      registerData.phone,
+      registerData.role,
+      registerData.adminCode
+    );
+    
+    setIsLoading(false);
   };
 
   return (
@@ -79,6 +102,8 @@ const Auth = () => {
                         type="email"
                         placeholder="tu@email.com"
                         className="pl-10"
+                        value={loginData.email}
+                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                         required
                       />
                     </div>
@@ -93,26 +118,14 @@ const Auth = () => {
                         type="password"
                         placeholder="••••••••"
                         className="pl-10"
+                        value={loginData.password}
+                        onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm">
-                    <label className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded" />
-                      <span className="text-muted-foreground">Recordarme</span>
-                    </label>
-                    <a href="#" className="text-primary hover:underline">
-                      ¿Olvidaste tu contraseña?
-                    </a>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-primary"
-                    disabled={isLoading}
-                  >
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Iniciando..." : "Iniciar Sesión"}
                   </Button>
                 </form>
@@ -121,28 +134,31 @@ const Auth = () => {
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Nombre Completo</Label>
+                    <Label htmlFor="fullName">Nombre Completo</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="name"
-                        type="text"
+                        id="fullName"
                         placeholder="Juan Pérez"
                         className="pl-10"
+                        value={registerData.fullName}
+                        onChange={(e) => setRegisterData({ ...registerData, fullName: e.target.value })}
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="register-email">Correo Electrónico</Label>
+                    <Label htmlFor="reg-email">Correo Electrónico</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="register-email"
+                        id="reg-email"
                         type="email"
                         placeholder="tu@email.com"
                         className="pl-10"
+                        value={registerData.email}
+                        onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                         required
                       />
                     </div>
@@ -155,72 +171,100 @@ const Auth = () => {
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="+52 123 456 7890"
+                        placeholder="+57 300 123 4567"
                         className="pl-10"
+                        value={registerData.phone}
+                        onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="register-password">Contraseña</Label>
+                    <Label htmlFor="reg-password">Contraseña</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="register-password"
+                        id="reg-password"
                         type="password"
                         placeholder="••••••••"
                         className="pl-10"
+                        value={registerData.password}
+                        onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        placeholder="••••••••"
+                        className="pl-10"
+                        value={registerData.confirmPassword}
+                        onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Tipo de Usuario</Label>
-                    <RadioGroup value={userRole} onValueChange={(value) => setUserRole(value as "cliente" | "veterinario")}>
-                      <div className="flex items-center space-x-2 border border-border rounded-lg p-3 hover:bg-muted/50 cursor-pointer">
-                        <RadioGroupItem value="cliente" id="cliente" />
-                        <Label htmlFor="cliente" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Heart className="h-4 w-4 text-primary" />
+                    <Label>Selecciona tu rol</Label>
+                    <RadioGroup
+                      value={registerData.role}
+                      onValueChange={(value: 'admin' | 'vet') => setRegisterData({ ...registerData, role: value })}
+                      className="grid gap-3"
+                    >
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="vet" id="vet" />
+                        <Label htmlFor="vet" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Stethoscope className="h-5 w-5 text-primary" />
                           <div>
-                            <div className="font-medium">Cliente</div>
-                            <div className="text-xs text-muted-foreground">Dueño de mascota</div>
+                            <div className="font-medium">Veterinario</div>
+                            <div className="text-xs text-muted-foreground">
+                              Gestiona consultas y pacientes
+                            </div>
                           </div>
                         </Label>
                       </div>
-                      <div className="flex items-center space-x-2 border border-border rounded-lg p-3 hover:bg-muted/50 cursor-pointer">
-                        <RadioGroupItem value="veterinario" id="veterinario" />
-                        <Label htmlFor="veterinario" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Stethoscope className="h-4 w-4 text-primary" />
+
+                      <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                        <RadioGroupItem value="admin" id="admin" />
+                        <Label htmlFor="admin" className="flex items-center gap-2 cursor-pointer flex-1">
+                          <Shield className="h-5 w-5 text-primary" />
                           <div>
-                            <div className="font-medium">Veterinario</div>
-                            <div className="text-xs text-muted-foreground">Profesional veterinario</div>
+                            <div className="font-medium">Administrador</div>
+                            <div className="text-xs text-muted-foreground">
+                              Control total de la clínica
+                            </div>
                           </div>
                         </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  <div className="flex items-start gap-2 text-sm">
-                    <input type="checkbox" className="rounded mt-1" required />
-                    <span className="text-muted-foreground">
-                      Acepto los{" "}
-                      <a href="#" className="text-primary hover:underline">
-                        términos y condiciones
-                      </a>{" "}
-                      y la{" "}
-                      <a href="#" className="text-primary hover:underline">
-                        política de privacidad
-                      </a>
-                    </span>
-                  </div>
+                  {registerData.role === 'admin' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="adminCode">Código de SuperAdmin</Label>
+                      <Input
+                        id="adminCode"
+                        type="password"
+                        placeholder="Ingresa el código"
+                        value={registerData.adminCode}
+                        onChange={(e) => setRegisterData({ ...registerData, adminCode: e.target.value })}
+                        required
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Este código es requerido para crear cuentas de administrador
+                      </p>
+                    </div>
+                  )}
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-gradient-primary"
-                    disabled={isLoading}
-                  >
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
                   </Button>
                 </form>
@@ -230,9 +274,12 @@ const Auth = () => {
         </Card>
 
         <div className="mt-6 text-center">
-          <Link to="/" className="text-sm text-muted-foreground hover:text-primary">
-            ← Volver al inicio
-          </Link>
+          <p className="text-sm text-muted-foreground">
+            ¿Necesitas ayuda?{" "}
+            <Link to="/" className="text-primary hover:underline">
+              Volver al inicio
+            </Link>
+          </p>
         </div>
       </div>
     </div>

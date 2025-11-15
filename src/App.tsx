@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import ClienteDashboard from "./pages/cliente/ClienteDashboard";
@@ -26,30 +27,32 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+        <AuthProvider>
+          <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           
           {/* Cliente Routes */}
-          <Route path="/cliente/dashboard" element={<ClienteDashboard />} />
-          <Route path="/cliente/mascotas" element={<Mascotas />} />
-          <Route path="/cliente/citas" element={<ClienteCitas />} />
-          <Route path="/cliente/historial" element={<Historial />} />
-          <Route path="/cliente/notificaciones" element={<ClienteNotificaciones />} />
+          <Route path="/client/dashboard" element={<ClienteDashboard />} />
+          <Route path="/client/mascotas" element={<Mascotas />} />
+          <Route path="/client/citas" element={<ClienteCitas />} />
+          <Route path="/client/historial" element={<Historial />} />
+          <Route path="/client/notificaciones" element={<ClienteNotificaciones />} />
           
           {/* Veterinario Routes */}
-          <Route path="/veterinario/dashboard" element={<VeterinarioDashboard />} />
-          <Route path="/veterinario/agenda" element={<Agenda />} />
-          <Route path="/veterinario/consultas" element={<Consultas />} />
-          <Route path="/veterinario/pacientes" element={<Pacientes />} />
-          <Route path="/veterinario/reportes" element={<Reportes />} />
+          <Route path="/vet/dashboard" element={<VeterinarioDashboard />} />
+          <Route path="/vet/agenda" element={<Agenda />} />
+          <Route path="/vet/consultas" element={<Consultas />} />
+          <Route path="/vet/pacientes" element={<Pacientes />} />
+          <Route path="/vet/reportes" element={<Reportes />} />
           
           {/* Admin Routes */}
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
