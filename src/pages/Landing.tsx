@@ -1,22 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Heart, 
-  Calendar, 
-  ClipboardList, 
-  Bell, 
-  Shield, 
-  Users,
-  CheckCircle,
-  ArrowRight,
-  Stethoscope,
-  PawPrint
-} from "lucide-react";
+import { Heart, Calendar, ClipboardList, Bell, Shield, Users, CheckCircle, ArrowRight, Stethoscope, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
-
 const Landing = () => {
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       {/* Header/Navbar */}
       <header className="fixed top-0 w-full bg-background/95 backdrop-blur-sm border-b border-border z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -78,9 +65,7 @@ const Landing = () => {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="text-lg px-8">
-              Ver Demo
-            </Button>
+            
           </div>
 
           <div className="mt-16 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -301,9 +286,7 @@ const Landing = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Heart key={i} className="h-5 w-5 fill-accent text-accent" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <Heart key={i} className="h-5 w-5 fill-accent text-accent" />)}
                 </div>
                 <p className="text-muted-foreground mb-4">
                   "VetCare 360 transformó completamente la forma en que gestionamos nuestra clínica. 
@@ -324,9 +307,7 @@ const Landing = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Heart key={i} className="h-5 w-5 fill-accent text-accent" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <Heart key={i} className="h-5 w-5 fill-accent text-accent" />)}
                 </div>
                 <p className="text-muted-foreground mb-4">
                   "El control de inventario nos ha ahorrado tiempo y dinero. 
@@ -347,9 +328,7 @@ const Landing = () => {
             <Card>
               <CardContent className="p-6">
                 <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Heart key={i} className="h-5 w-5 fill-accent text-accent" />
-                  ))}
+                  {[...Array(5)].map((_, i) => <Heart key={i} className="h-5 w-5 fill-accent text-accent" />)}
                 </div>
                 <p className="text-muted-foreground mb-4">
                   "Como dueña de mascota, me encanta poder ver el historial clínico de mis perros 
@@ -434,8 +413,6 @@ const Landing = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Landing;
