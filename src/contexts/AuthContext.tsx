@@ -165,10 +165,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: `Has iniciado sesión como ${profileData.role}`,
           });
 
-          // Redirigir según rol
-          setTimeout(() => {
-            navigate(`/${profileData.role}/dashboard`);
-          }, 100);
+          // Redirigir según rol inmediatamente
+          navigate(`/${profileData.role}/dashboard`, { replace: true });
         }
       }
 
