@@ -4,49 +4,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Phone, Mail, Calendar, FileText } from "lucide-react";
+import { usePets } from "@/hooks/usePets";
+import { useState } from "react";
+import { differenceInYears, differenceInMonths } from "date-fns";
 
 const Pacientes = () => {
-  const pacientes = [
-    {
-      id: 1,
-      nombre: "Max",
-      especie: "Perro",
-      raza: "Golden Retriever",
-      edad: "3 años",
-      dueno: "Juan Pérez",
-      telefono: "+52 123 456 7890",
-      email: "juan@email.com",
-      ultimaVisita: "10 Nov 2025",
-      proximaCita: "15 Nov 2025",
-      estado: "Activo"
-    },
-    {
-      id: 2,
-      nombre: "Luna",
-      especie: "Gato",
-      raza: "Siamés",
-      edad: "2 años",
-      dueno: "María García",
-      telefono: "+52 098 765 4321",
-      email: "maria@email.com",
-      ultimaVisita: "5 Nov 2025",
-      proximaCita: "20 Nov 2025",
-      estado: "Activo"
-    },
-    {
-      id: 3,
-      nombre: "Rocky",
-      especie: "Perro",
-      raza: "Pastor Alemán",
-      edad: "5 años",
-      dueno: "Carlos López",
-      telefono: "+52 555 123 4567",
-      email: "carlos@email.com",
-      ultimaVisita: "1 Nov 2025",
-      proximaCita: "15 Nov 2025",
-      estado: "Tratamiento"
+  const { pets, isLoading } = usePets();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const calculateAge = (birthDate: string | null) => {
+    if (!birthDate) return "Edad desconocida";
+    const years = differenceInYears(new Date(), new Date(birthDate));
+    const months = differenceInMonths(new Date(), new Date(birthDate)) % 12;
+    
+    if (years > 0) {
+      return `${years} ${years === 1 ? 'año' : 'años'}`;
     }
-  ];
+    return `${months} ${months === 1 ? 'mes' : 'meses'}`;
+  };
+
+  const filteredPets = pets?.filter((pet) =>
+    pet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pet.species.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (isLoading) {
+    return (
+      <DashboardLayout userRole="vet">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p>Cargando pacientes...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout userRole="vet">
@@ -60,77 +50,72 @@ const Pacientes = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Buscar paciente o dueño..." 
+              placeholder="Buscar paciente..." 
               className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
           <Button variant="outline">Filtros</Button>
         </div>
 
-        <div className="grid gap-4">
-          {pacientes.map((paciente) => (
-            <Card key={paciente.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      {paciente.nombre}
-                      <Badge variant={paciente.estado === "Activo" ? "default" : "secondary"}>
-                        {paciente.estado}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription>
-                      {paciente.especie} - {paciente.raza} - {paciente.edad}
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-sm mb-2">Información del Dueño</h4>
-                    <div className="grid gap-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{paciente.dueno}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{paciente.telefono}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span>{paciente.email}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm pt-2 border-t">
+        {!filteredPets || filteredPets.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <p className="text-muted-foreground">No se encontraron pacientes</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4">
+            {filteredPets.map((paciente) => (
+              <Card key={paciente.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-muted-foreground">Última Visita</p>
-                      <p className="font-medium">{paciente.ultimaVisita}</p>
+                      <CardTitle className="flex items-center gap-2">
+                        {paciente.name}
+                        <Badge variant="default">Activo</Badge>
+                      </CardTitle>
+                      <CardDescription>
+                        {paciente.species} {paciente.breed && `- ${paciente.breed}`} - {calculateAge(paciente.birth_date)}
+                      </CardDescription>
                     </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
                     <div>
-                      <p className="text-muted-foreground">Próxima Cita</p>
-                      <p className="font-medium">{paciente.proximaCita}</p>
+                      <h4 className="font-semibold text-sm mb-2">Información del Dueño</h4>
+                      <div className="grid gap-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span>Nombre del dueño</span>
+                        </div>
+                        {paciente.color && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">Color:</span>
+                            <span>{paciente.color}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Ver Historial
+                      </Button>
+                      <Button size="sm" className="flex-1">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Agendar Cita
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Ver Historial
-                    </Button>
-                    <Button size="sm" variant="outline" className="flex-1">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Agendar Cita
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
