@@ -31,7 +31,7 @@ const Mascotas = () => {
   ];
 
   return (
-    <DashboardLayout userRole="cliente">
+    <DashboardLayout userRole="client">
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
