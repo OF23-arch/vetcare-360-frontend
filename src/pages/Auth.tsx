@@ -5,15 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PawPrint, Mail, Lock, User, Phone, Stethoscope, Heart, Shield } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { PawPrint, Mail, Lock, User, Phone, Loader2, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   
-  // Estado para registro
   const [registerData, setRegisterData] = useState({
     fullName: '',
     email: '',
@@ -24,7 +25,6 @@ const Auth = () => {
     adminCode: '',
   });
 
-  // Estado para login
   const [loginData, setLoginData] = useState({
     email: '',
     password: '',
@@ -33,7 +33,6 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     await signIn(loginData.email, loginData.password);
     setIsLoading(false);
   };
@@ -41,7 +40,6 @@ const Auth = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validaciones
     if (registerData.password !== registerData.confirmPassword) {
       return;
     }
@@ -51,7 +49,6 @@ const Auth = () => {
     }
 
     setIsLoading(true);
-    
     await signUp(
       registerData.email,
       registerData.password,
@@ -60,14 +57,18 @@ const Auth = () => {
       registerData.role,
       registerData.adminCode
     );
-    
     setIsLoading(false);
   };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    await signInWithGoogle();
-    setIsLoading(false);
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (error) {
+      console.error('Error con Google:', error);
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -97,7 +98,37 @@ const Auth = () => {
                 <TabsTrigger value="register">Registrarse</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="login">
+              <TabsContent value="login" className="space-y-6 mt-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isGoogleLoading}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-input rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-background shadow-sm"
+                >
+                  {isGoogleLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M19.8055 10.2292C19.8055 9.55056 19.7508 8.86719 19.6328 8.19922H10.2V12.0492H15.6016C15.3773 13.2911 14.6571 14.3898 13.6148 15.0875V17.5866H16.825C18.7172 15.8449 19.8055 13.2728 19.8055 10.2292Z" fill="#4285F4"/>
+                      <path d="M10.2 20.0006C12.8945 20.0006 15.1719 19.1048 16.8289 17.5872L13.6187 15.088C12.7461 15.698 11.6031 16.0428 10.2039 16.0428C7.60156 16.0428 5.38906 14.2831 4.62187 11.9167H1.3125V14.4921C3.00469 17.8698 6.43906 20.0006 10.2 20.0006Z" fill="#34A853"/>
+                      <path d="M4.61797 11.917C4.1961 10.6751 4.1961 9.32879 4.61797 8.08691V5.51147H1.31172C-0.0734382 8.26801 -0.0734382 11.7356 1.31172 14.4921L4.61797 11.917Z" fill="#FBBC04"/>
+                      <path d="M10.2 3.95772C11.6812 3.93616 13.1094 4.47116 14.1891 5.45772L17.0406 2.60616C15.0844 0.77178 12.4914 -0.214843 10.2 -0.180531C6.43906 -0.180531 3.00469 1.9503 1.3125 5.51105L4.61875 8.08649C5.38281 5.71649 7.59844 3.95772 10.2 3.95772Z" fill="#EA4335"/>
+                    </svg>
+                  )}
+                  <span className="text-sm font-medium">
+                    {isGoogleLoading ? "Conectando..." : "Continuar con Google"}
+                  </span>
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">O continúa con email</span>
+                  </div>
+                </div>
+
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Correo Electrónico</Label>
@@ -134,49 +165,40 @@ const Auth = () => {
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Iniciando..." : "Iniciar Sesión"}
                   </Button>
-
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        O continúa con
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleGoogleSignIn}
-                    disabled={isLoading}
-                  >
-                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
-                      <path
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                        fill="#4285F4"
-                      />
-                      <path
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                        fill="#34A853"
-                      />
-                      <path
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                        fill="#FBBC05"
-                      />
-                      <path
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                        fill="#EA4335"
-                      />
-                    </svg>
-                    Google
-                  </Button>
                 </form>
               </TabsContent>
 
-              <TabsContent value="register">
+              <TabsContent value="register" className="space-y-6 mt-6">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={isGoogleLoading}
+                  className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-input rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-background shadow-sm"
+                >
+                  {isGoogleLoading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M19.8055 10.2292C19.8055 9.55056 19.7508 8.86719 19.6328 8.19922H10.2V12.0492H15.6016C15.3773 13.2911 14.6571 14.3898 13.6148 15.0875V17.5866H16.825C18.7172 15.8449 19.8055 13.2728 19.8055 10.2292Z" fill="#4285F4"/>
+                      <path d="M10.2 20.0006C12.8945 20.0006 15.1719 19.1048 16.8289 17.5872L13.6187 15.088C12.7461 15.698 11.6031 16.0428 10.2039 16.0428C7.60156 16.0428 5.38906 14.2831 4.62187 11.9167H1.3125V14.4921C3.00469 17.8698 6.43906 20.0006 10.2 20.0006Z" fill="#34A853"/>
+                      <path d="M4.61797 11.917C4.1961 10.6751 4.1961 9.32879 4.61797 8.08691V5.51147H1.31172C-0.0734382 8.26801 -0.0734382 11.7356 1.31172 14.4921L4.61797 11.917Z" fill="#FBBC04"/>
+                      <path d="M10.2 3.95772C11.6812 3.93616 13.1094 4.47116 14.1891 5.45772L17.0406 2.60616C15.0844 0.77178 12.4914 -0.214843 10.2 -0.180531C6.43906 -0.180531 3.00469 1.9503 1.3125 5.51105L4.61875 8.08649C5.38281 5.71649 7.59844 3.95772 10.2 3.95772Z" fill="#EA4335"/>
+                    </svg>
+                  )}
+                  <span className="text-sm font-medium">
+                    {isGoogleLoading ? "Conectando..." : "Continuar con Google"}
+                  </span>
+                </button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">O regístrate con email</span>
+                  </div>
+                </div>
+
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Nombre Completo</Label>
@@ -194,11 +216,11 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="reg-email">Correo Electrónico</Label>
+                    <Label htmlFor="registerEmail">Correo Electrónico</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="reg-email"
+                        id="registerEmail"
                         type="email"
                         placeholder="tu@email.com"
                         className="pl-10"
@@ -216,7 +238,7 @@ const Auth = () => {
                       <Input
                         id="phone"
                         type="tel"
-                        placeholder="+57 300 123 4567"
+                        placeholder="+52 123 456 7890"
                         className="pl-10"
                         value={registerData.phone}
                         onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
@@ -226,11 +248,11 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="reg-password">Contraseña</Label>
+                    <Label htmlFor="registerPassword">Contraseña</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="reg-password"
+                        id="registerPassword"
                         type="password"
                         placeholder="••••••••"
                         className="pl-10"
@@ -242,11 +264,11 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirm-password">Confirmar Contraseña</Label>
+                    <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="confirm-password"
+                        id="confirmPassword"
                         type="password"
                         placeholder="••••••••"
                         className="pl-10"
@@ -258,35 +280,21 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-3">
-                    <Label>Selecciona tu rol</Label>
+                    <Label>Tipo de Cuenta</Label>
                     <RadioGroup
                       value={registerData.role}
-                      onValueChange={(value: 'admin' | 'vet') => setRegisterData({ ...registerData, role: value })}
-                      className="grid gap-3"
+                      onValueChange={(value) => setRegisterData({ ...registerData, role: value as 'admin' | 'vet' })}
                     >
-                      <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="vet" id="vet" />
-                        <Label htmlFor="vet" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Stethoscope className="h-5 w-5 text-primary" />
-                          <div>
-                            <div className="font-medium">Veterinario</div>
-                            <div className="text-xs text-muted-foreground">
-                              Gestiona consultas y pacientes
-                            </div>
-                          </div>
+                        <Label htmlFor="vet" className="font-normal cursor-pointer">
+                          Veterinario
                         </Label>
                       </div>
-
-                      <div className="flex items-center space-x-2 border rounded-lg p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="admin" id="admin" />
-                        <Label htmlFor="admin" className="flex items-center gap-2 cursor-pointer flex-1">
-                          <Shield className="h-5 w-5 text-primary" />
-                          <div>
-                            <div className="font-medium">Administrador</div>
-                            <div className="text-xs text-muted-foreground">
-                              Control total de la clínica
-                            </div>
-                          </div>
+                        <Label htmlFor="admin" className="font-normal cursor-pointer">
+                          Administrador
                         </Label>
                       </div>
                     </RadioGroup>
@@ -295,37 +303,29 @@ const Auth = () => {
                   {registerData.role === 'admin' && (
                     <div className="space-y-2">
                       <Label htmlFor="adminCode">Código de SuperAdmin</Label>
-                      <Input
-                        id="adminCode"
-                        type="password"
-                        placeholder="Ingresa el código"
-                        value={registerData.adminCode}
-                        onChange={(e) => setRegisterData({ ...registerData, adminCode: e.target.value })}
-                        required
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Este código es requerido para crear cuentas de administrador
-                      </p>
+                      <div className="relative">
+                        <Shield className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="adminCode"
+                          type="password"
+                          placeholder="Código secreto"
+                          className="pl-10"
+                          value={registerData.adminCode}
+                          onChange={(e) => setRegisterData({ ...registerData, adminCode: e.target.value })}
+                          required
+                        />
+                      </div>
                     </div>
                   )}
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
+                    {isLoading ? "Registrando..." : "Crear Cuenta"}
                   </Button>
                 </form>
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
-
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            ¿Necesitas ayuda?{" "}
-            <Link to="/" className="text-primary hover:underline">
-              Volver al inicio
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );
