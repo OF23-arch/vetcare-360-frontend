@@ -8,13 +8,16 @@ interface Profile {
   id: string;
   full_name: string;
   phone: string | null;
+}
+
+interface ProfileWithRole extends Profile {
   role: 'admin' | 'vet' | 'client';
 }
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  profile: Profile | null;
+  profile: ProfileWithRole | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string, phone: string, role: 'admin' | 'vet', adminCode?: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -27,7 +30,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<ProfileWithRole | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -44,12 +47,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setTimeout(async () => {
             const { data: profileData } = await supabase
               .from('profiles')
-              .select('*')
+              .select('*, user_roles!inner(role)')
               .eq('id', session.user.id)
               .single();
             
-            if (profileData) {
-              setProfile(profileData);
+            if (profileData && profileData.user_roles) {
+              const userRoles = profileData.user_roles as unknown as Array<{ role: 'admin' | 'vet' | 'client' }>;
+              setProfile({
+                id: profileData.id,
+                full_name: profileData.full_name,
+                phone: profileData.phone,
+                role: userRoles[0].role
+              });
             }
           }, 0);
         } else {
@@ -66,12 +75,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (session?.user) {
         supabase
           .from('profiles')
-          .select('*')
+          .select('*, user_roles!inner(role)')
           .eq('id', session.user.id)
           .single()
           .then(({ data: profileData }) => {
-            if (profileData) {
-              setProfile(profileData);
+            if (profileData && profileData.user_roles) {
+              const userRoles = profileData.user_roles as unknown as Array<{ role: 'admin' | 'vet' | 'client' }>;
+              setProfile({
+                id: profileData.id,
+                full_name: profileData.full_name,
+                phone: profileData.phone,
+                role: userRoles[0].role
+              });
             }
             setLoading(false);
           });
@@ -92,9 +107,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     adminCode?: string
   ) => {
     try {
-      // Validar código de admin si es admin
-      if (role === 'admin' && adminCode !== '1209') {
-        return { error: { message: 'Código de SuperAdmin inválido' } };
+      // Validate admin code server-side if role is admin
+      if (role === 'admin') {
+        if (!adminCode) {
+          return { error: { message: 'Código de SuperAdmin requerido' } };
+        }
+        
+        const { data: validationData, error: validationError } = await supabase.functions.invoke('validate-admin-code', {
+          body: { adminCode }
+        });
+        
+        if (validationError || !validationData?.valid) {
+          return { error: { message: 'Código de SuperAdmin inválido' } };
+        }
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -144,7 +169,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.user) {
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
-          .select('*')
+          .select('*, user_roles!inner(role)')
           .eq('id', data.user.id)
           .single();
 
@@ -157,16 +182,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return { error: profileError };
         }
 
-        if (profileData) {
-          setProfile(profileData);
+        if (profileData && profileData.user_roles) {
+          const userRoles = profileData.user_roles as unknown as Array<{ role: 'admin' | 'vet' | 'client' }>;
+          const profileWithRole: ProfileWithRole = {
+            id: profileData.id,
+            full_name: profileData.full_name,
+            phone: profileData.phone,
+            role: userRoles[0].role
+          };
+          
+          setProfile(profileWithRole);
           
           toast({
             title: "Bienvenido",
-            description: `Has iniciado sesión como ${profileData.role}`,
+            description: `Has iniciado sesión como ${profileWithRole.role}`,
           });
 
           // Redirigir según rol inmediatamente
-          navigate(`/${profileData.role}/dashboard`, { replace: true });
+          navigate(`/${profileWithRole.role}/dashboard`, { replace: true });
         }
       }
 

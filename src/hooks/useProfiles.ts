@@ -10,17 +10,30 @@ export const useProfiles = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("*, user_roles!inner(role)")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Transform data to include role
+      return data.map((profile) => {
+        const userRoles = profile.user_roles as unknown as Array<{ role: 'admin' | 'vet' | 'client' }>;
+        return {
+          id: profile.id,
+          full_name: profile.full_name,
+          phone: profile.phone,
+          created_at: profile.created_at,
+          updated_at: profile.updated_at,
+          role: userRoles[0].role
+        };
+      });
     },
   });
 
   const updateProfile = useMutation({
     mutationFn: async ({
       id,
+      role,
       ...updates
     }: {
       id: string;
@@ -28,15 +41,25 @@ export const useProfiles = () => {
       phone?: string;
       role?: "admin" | "vet" | "client";
     }) => {
-      const { data, error } = await supabase
+      // Update profile data (without role)
+      const { error: profileError } = await supabase
         .from("profiles")
         .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
+        .eq("id", id);
 
-      if (error) throw error;
-      return data;
+      if (profileError) throw profileError;
+
+      // Update role in user_roles table if provided
+      if (role) {
+        const { error: roleError } = await supabase
+          .from("user_roles")
+          .update({ role })
+          .eq("user_id", id);
+
+        if (roleError) throw roleError;
+      }
+
+      return { id, ...updates, role };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
